@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دۆبلاژ – احمد دۆبلاژ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--tx:#1d1b18;--mu:#6b665d;--ac:#c8541f;--bd:#e3ded3;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15130f;--card:#1f1c17;--tx:#f1ede4;--mu:#a39d90;--ac:#ef7a43;--bd:#33302a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15130f;--card:#1f1c17;--tx:#f1ede4;--mu:#a39d90;--ac:#ef7a43;--bd:#33302a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:"Noto Sans Arabic",Tahoma,sans-serif}
+main{max-width:760px;margin:0 auto;padding:14px;display:grid;gap:12px}
+h1{font-size:20px;margin:4px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;display:grid;gap:10px}
+.stage{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:16/9}
+canvas{width:100%;height:100%;object-fit:contain;display:block}
+#ph{position:absolute;inset:0;display:grid;place-items:center;color:#bbb}
+#v{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row label{font-size:13px;color:var(--mu);min-width:90px}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--ac)}
+input[type=text],select{flex:1;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit}
+button,.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+button.sec,.btn.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button:disabled{opacity:.45;cursor:not-allowed}
+#rb{width:100%;padding:16px;font-size:17px}
+#rb.on{background:#c0261c;animation:p 1s infinite}
+@keyframes p{50%{opacity:.7}}
+#st{font-size:13px;color:var(--mu);min-height:18px}
+small{color:var(--mu)}
+</style>
+</head>
+<body>
+<main>
+<h1>🎙 دۆبلاژ</h1>
+
+<div class="card">
+  <div class="stage"><canvas id="cv" width="1280" height="720"></canvas><div id="ph">ڤیدیۆیەک هەڵبژێرە</div></div>
+  <video id="v" playsinline preload="auto"></video>
+  <div class="row">
+    <button id="pl" disabled>لێدان</button>
+    <input type="range" id="sk" min="0" max="1" step="0.05" value="0" disabled>
+    <span id="tm" dir="ltr">0:00 / 0:00</span>
+  </div>
+  <div class="row"><label class="btn sec">هەڵبژاردنی ڤیدیۆ<input type="file" id="f" accept="video/*" hidden></label></div>
+</div>
+
+<div class="card">
+  <b>ڕیکۆردی دەنگ</b>
+  <div class="row"><label>دەنگی ڤیدیۆی ئەسڵی</label><input type="range" id="og" min="0" max="100" value="20"></div>
+  <div class="row"><label>نەرمیی دەنگ</label><input type="range" id="sf" min="0" max="100" value="50"></div>
+  <small>گوێچکە (هێدفۆن) بەکاربهێنە با دەنگی ئەسڵی نەچێتە ناو مایکەکە. ڕیکۆرد هەمیشە لە سەرەتای ڤیدیۆوە دەست پێدەکات.</small>
+  <button id="rb" disabled>ڕیکۆردکردن</button>
+  <div id="st"></div>
+</div>
+
+<div class="card">
+  <b>لۆگۆ</b>
+  <div class="row"><label><input type="checkbox" id="lg" checked> پیشاندان</label>
+    <select id="ps"><option value="tr">سەرەوە – ڕاست</option><option value="tl">سەرەوە – چەپ</option><option value="br">خوارەوە – ڕاست</option><option value="bl">خوارەوە – چەپ</option></select></div>
+  <div class="row"><label>دەقی لۆگۆ</label><input type="text" id="lt" value="احمد دۆبلاژ"></div>
+  <div class="row"><label class="btn sec">وێنەی لۆگۆ (PNG)<input type="file" id="li" accept="image/*" hidden></label><button class="sec" id="lx">گەڕانەوە بۆ دەق</button></div>
+</div>
+
+<div class="card">
+  <b>دەرچوون</b>
+  <div class="row">
+    <button id="ex" disabled>هەناردەکردنی ڤیدیۆ (لەگەڵ دۆبلاژ و لۆگۆ)</button>
+    <a id="dl" class="btn sec" hidden>داگرتنی تەنها دەنگ</a>
+  </div>
+  <small>هەناردەکردن بە کاتی ڕاستەقینە دەکرێت (درێژیی ڤیدیۆکە)، تابەکە لەسەر شاشە بهێڵەرەوە.</small>
+</div>
+</main>
+
+<script>
+const $=i=>document.getElementById(i);
+const v=$('v'),cv=$('cv'),cx=cv.getContext('2d'),dubA=new Audio();
+let ac,og,xd,hasDub=false,recording=false,exporting=false,mic,rec,xr,logoImg=null;
+const st=t=>$('st').textContent=t;
+const fmt=s=>{s=Math.floor(s||0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+try{document.fonts.load('700 20px "Noto Sans Arabic"')}catch(e){}
+
+function initAudio(){
+  if(ac)return;
+  ac=new (window.AudioContext||window.webkitAudioContext)();
+  const vs=ac.createMediaElementSource(v); og=ac.createGain(); og.gain.value=.2;
+  const ds=ac.createMediaElementSource(dubA);
+  xd=ac.createMediaStreamDestination();
+  vs.connect(og); og.connect(ac.destination); og.connect(xd);
+  ds.connect(ac.destination); ds.connect(xd);
+}
+$('og').oninput=e=>{if(og)og.gain.value=e.target.value/100};
+
+$('f').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  v.src=URL.createObjectURL(f); hasDub=false; $('ph').hidden=true;
+  $('ex').disabled=true; $('dl').hidden=true;
+};
+v.onloadedmetadata=()=>{cv.width=v.videoWidth;cv.height=v.videoHeight;['pl','rb','sk'].forEach(i=>$(i).disabled=false);v.currentTime=0.01};
+
+$('pl').onclick=async()=>{initAudio();await ac.resume();v.paused?v.play():v.pause()};
+v.onplay=()=>{$('pl').textContent='وەستان';if(hasDub&&!recording){dubA.currentTime=v.currentTime;dubA.play()}};
+v.onpause=()=>{$('pl').textContent='لێدان';dubA.pause()};
+v.onseeked=()=>{if(hasDub)dubA.currentTime=v.currentTime};
+v.ontimeupdate=()=>{$('sk').max=v.duration||1;$('sk').value=v.currentTime;$('tm').textContent=fmt(v.currentTime)+' / '+fmt(v.duration)};
+$('sk').oninput=e=>{v.currentTime=e.target.value};
+v.onended=()=>{dubA.pause();if(recording)stopRec();if(exporting)xr.stop()};
+
+// ---- recording with soft "dubbing mic" chain ----
+$('rb').onclick=()=>recording?stopRec():startRec();
+async function startRec(){
+  try{
+    initAudio();await ac.resume();
+    mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:false}});
+  }catch(e){st('مایک کارینەکرد. ڕێگەپێدان بدە، یان فایلەکە لە Chrome بکەرەوە.');return}
+  const s=ac.createMediaStreamSource(mic);
+  const f=(t,fr,g)=>{const n=ac.createBiquadFilter();n.type=t;n.frequency.value=fr;n.gain.value=g||0;return n};
+  const hp=f('highpass',85), warm=f('lowshelf',220,2.5), soft=f('highshelf',6500,-$('sf').value/100*9);
+  const cp=ac.createDynamicsCompressor();cp.threshold.value=-26;cp.ratio.value=3;cp.attack.value=.01;cp.release.value=.25;
+  const mk=ac.createGain();mk.gain.value=1.5;
+  const md=ac.createMediaStreamDestination();
+  s.connect(hp);hp.connect(warm);warm.connect(soft);soft.connect(cp);cp.connect(mk);mk.connect(md);
+  const ch=[];rec=new MediaRecorder(md.stream);
+  rec.ondataavailable=e=>ch.push(e.data);
+  rec.onstop=()=>{
+    mic.getTracks().forEach(t=>t.stop());
+    const b=new Blob(ch,{type:rec.mimeType});
+    dubA.src=URL.createObjectURL(b);hasDub=true;
+    $('dl').href=dubA.src;$('dl').download='dubbing.'+(rec.mimeType.includes('mp4')?'m4a':'webm');$('dl').hidden=false;
+    $('ex').disabled=false;st('ڕیکۆرد تەواو بوو. دوگمەی «لێدان» بکە بۆ بیستنی دۆبلاژەکە.');
+  };
+  dubA.pause();hasDub=false;v.pause();v.currentTime=0;
+  recording=true;rec.start();await v.play();
+  $('rb').textContent='وەستاندنی ڕیکۆرد';$('rb').classList.add('on');st('ڕیکۆردکردن دەستی پێکرد…');
+}
+function stopRec(){
+  if(!recording)return;recording=false;rec.stop();v.pause();
+  $('rb').textContent='ڕیکۆردکردن';$('rb').classList.remove('on');
+}
+
+// ---- logo ----
+$('li').onchange=e=>{const f=e.target.files[0];if(!f)return;const i=new Image();i.onload=()=>logoImg=i;i.src=URL.createObjectURL(f)};
+$('lx').onclick=()=>logoImg=null;
+function drawLogo(){
+  if(!$('lg').checked)return;
+  const W=cv.width,H=cv.height,p=W*.02,ps=$('ps').value;
+  const xy=(w,h)=>[ps[1]=='l'?p:W-w-p, ps[0]=='t'?p:H-h-p];
+  if(logoImg){const w=W*.16,h=w*logoImg.height/logoImg.width,[x,y]=xy(w,h);cx.drawImage(logoImg,x,y,w,h);return}
+  const t=$('lt').value||'احمد دۆبلاژ',fs=W*.026;
+  cx.font=`700 ${fs}px "Noto Sans Arabic",Tahoma,sans-serif`;cx.direction='rtl';
+  const w=cx.measureText(t).width+fs*2.6,h=fs*2.1,[x,y]=xy(w,h);
+  cx.beginPath();cx.roundRect(x,y,w,h,h/2);cx.fillStyle='rgba(20,16,12,.65)';cx.fill();
+  cx.lineWidth=fs*.1;cx.strokeStyle='#ef7a43';cx.stroke();
+  cx.beginPath();cx.arc(x+w-h*.5,y+h/2,fs*.28,0,7);cx.fillStyle='#ef7a43';cx.fill();
+  cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';
+  cx.fillText(t,x+w/2-fs*.45,y+h/2+fs*.05);
+}
+(function draw(){
+  if(v.videoWidth){cx.drawImage(v,0,0,cv.width,cv.height);drawLogo()}
+  requestAnimationFrame(draw);
+})();
+
+// ---- export (real time, canvas + mixed audio) ----
+$('ex').onclick=async()=>{
+  initAudio();await ac.resume();v.pause();
+  const cs=cv.captureStream(30);
+  xd.stream.getAudioTracks().forEach(t=>cs.addTrack(t));
+  const mime=['video/webm;codecs=vp9,opus','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));
+  const ch=[];xr=new MediaRecorder(cs,mime?{mimeType:mime}:undefined);
+  xr.ondataavailable=e=>ch.push(e.data);
+  xr.onstop=()=>{
+    exporting=false;$('ex').disabled=false;
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(ch,{type:xr.mimeType}));
+    a.download='dubbed.'+(xr.mimeType.includes('mp4')?'mp4':'webm');a.click();
+    st('ڤیدیۆکە ئامادەیە و داگیرا.');
+  };
+  exporting=true;$('ex').disabled=true;
+  v.currentTime=0;dubA.currentTime=0;xr.start();v.play();
+  st('هەناردەکردن بەردەوامە… تابەکە داخەرەوە مەکە.');
+};
+</script>
+</body>
+</html>
